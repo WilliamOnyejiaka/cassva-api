@@ -1,0 +1,45 @@
+{
+  "name": "cassava-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/compression": "^1.7.5",
+    "@types/express": "^5.0.1",
+    "@types/morgan": "^1.9.9",
+    "@types/redis": "^4.0.11",
+    "@types/socket.io": "^3.0.2",
+    "drizzle-kit": "^0.30.6",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "@socket.io/sticky": "^1.0.4",
+    "@types/body-parser": "^1.19.5",
+    "@types/cors": "^2.8.17",
+    "body-parser": "^2.2.0",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.41.0",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.0",
+    "morgan": "^1.10.0",
+    "postgres": "^3.4.5",
+    "redis": "^4.7.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "winston": "^3.17.0"
+  }
+}
