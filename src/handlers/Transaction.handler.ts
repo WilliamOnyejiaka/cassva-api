@@ -159,12 +159,12 @@ export default class Transaction {
             return;
         }
 
-        const transactionIds = console.log(result.data);
-
+        const transactionResult = (result.data as any).map((item: any) =>{
+            return { table: item.type, transactionId: item.data.id }
+        });
 
         socket.emit(Events.SUCCESSFUL_TRANSACTION, {
-            data: result.data,
-            // data: transactions,
+            data: transactionResult,
             error: false,
             message: "Transaction was successful"
         });

@@ -72,17 +72,16 @@ export default class Resource extends Repo {
                             .from(targetTable)
                             .where(eq(targetTable.id, id));
 
-                        console.log(command);
-                        console.log(existing);
+                        // console.log(command);
+                        // console.log(existing);
                         if (existing.length > 0) {
-                            // if (command === "create" && version != 0) {
-                            //     throw new Error(`Version is invalid`);
-                            // }
+                            if (command === "create" && version != 0) {
+                                throw new Error(`Version is invalid`);
+                            }
                             if (command !== "create" && (existing[0].version! + 1) != version) {
                                 throw new Error(`Version is invalid`);
                             }
                         }
-
 
                         // Validate foreign keys
                         if (tableName === "resource" && parentId) {
