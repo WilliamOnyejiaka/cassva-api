@@ -1,8 +1,8 @@
-// server.ts
 import cluster from "cluster";
 import * as os from "os";
 import createApp from "./config/app";
-import { env } from "./config";
+import { env, db } from "./config";
+import { sql } from 'drizzle-orm';
 
 let environmentType = env('envType');
 const PORT = env('port');
@@ -27,16 +27,9 @@ async function startServer() {
             console.log(`Worker ${worker.process.pid} is online`);
         });
     } else {
-        // app.listen(PORT, () => {
-        //     console.log(`pid - ${process.pid}`);
-
-        //     console.log(`server running on port - ${PORT}\n`)
-        // });
-
         try {
-            // Connect to the database
-            // await prisma.$connect();
-            // console.log(`Worker ${process.pid} has connected to the database`);
+            await db.execute(sql`SELECT NOW()`);
+            console.log('Connected to the database');
 
             // Start Express server
             app.listen(PORT, () => {
@@ -54,7 +47,7 @@ async function startServer() {
     if (environmentType === "dev") {
         try {
             // Connect to the database
-            // await prisma.$connect();
+            await db.execute(sql`SELECT NOW()`);
             console.log('Connected to the database');
             // Start Express server
             (await createApp()).listen(PORT, () => console.log(`server running on port - ${PORT}`));

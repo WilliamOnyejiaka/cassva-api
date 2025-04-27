@@ -2,7 +2,6 @@ import Redis from 'ioredis';
 import { env } from '.';
 
 const redisClient = new Redis(env('redisURL')!);
-// const redisClient = new Redis("rediss://default:AVG-AAIjcDFiNjNiOTRkNjYwYTE0NjZkODNlMmNhODNhMGMyMTI3M3AxMA@quick-whale-20926.upstash.io:6379");
 
 redisClient.on("connecting", () => {
     console.log("Redis Connecting...");

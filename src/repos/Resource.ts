@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 import db from "../config/drizzle";
-import { resource, users } from "../drizzle/schema";
+import { resource, questions, questionType } from "../drizzle/schema";
 import Repo from "./Repo";
+import { version } from "os";
 
 export default class Resource extends Repo {
 
@@ -34,128 +35,57 @@ export default class Resource extends Repo {
         }
     }
 
-    // Transaction to process resource operations
-    // async processResourceOperations(operations: any) {
-    //     try {
-    //         await db.transaction(async (tx) => {
-    //             for (const op of operations) {
-    //                 const { id, command, resourceType, parentId, userId, properties } = op;
-
-    //                 // Check if resource exists
-    //                 const existing = await tx
-    //                     .select()
-    //                     .from(resource)
-    //                     .where(eq(resource.id, id));
-
-    //                 // Validate parentId if provided
-    //                 if (parentId) {
-    //                     const parentExists = await tx
-    //                         .select()
-    //                         .from(resource)
-    //                         .where(eq(resource.id, parentId));
-    //                     if (parentExists.length === 0) {
-    //                         throw new Error(`Parent resource with ID ${parentId} does not exist`);
-    //                     }
-    //                 }
-
-    //                 switch (command.toLowerCase()) {
-    //                     case 'create':
-    //                         if (existing.length > 0) {
-    //                             throw new Error(`Cannot create: Resource with ID ${id} already exists`);
-    //                         }
-    //                         await tx.insert(resource).values({
-    //                             id,
-    //                             resourceType,
-    //                             parentId,
-    //                             userId,
-    //                             properties,
-    //                             createdAt: new Date().toISOString(),
-    //                             updatedAt: new Date().toISOString(),
-    //                         });
-    //                         console.log(`Created resource: ${id}`);
-    //                         break;
-
-    //                     case 'update':
-    //                         if (existing.length === 0) {
-    //                             throw new Error(`Cannot update: Resource with ID ${id} does not exist`);
-    //                         }
-    //                         await tx
-    //                             .update(resource)
-    //                             .set({
-    //                                 resourceType,
-    //                                 parentId,
-    //                                 userId,
-    //                                 properties,
-    //                                 updatedAt: new Date().toISOString(),
-    //                             })
-    //                             .where(eq(resource.id, id));
-    //                         console.log(`Updated resource: ${id}`);
-    //                         break;
-
-    //                     case 'set':
-    //                         // Upsert behavior
-    //                         if (existing.length > 0) {
-    //                             await tx
-    //                                 .update(resource)
-    //                                 .set({
-    //                                     resourceType,
-    //                                     parentId,
-    //                                     userId,
-    //                                     properties,
-    //                                     updatedAt: new Date().toISOString(),
-    //                                 })
-    //                                 .where(eq(resource.id, id));
-    //                             console.log(`Set (updated) resource: ${id}`);
-    //                         } else {
-    //                             await tx.insert(resource).values({
-    //                                 id,
-    //                                 resourceType,
-    //                                 parentId,
-    //                                 userId,
-    //                                 properties,
-    //                                 createdAt: new Date().toISOString(),
-    //                                 updatedAt: new Date().toISOString(),
-    //                             });
-    //                             console.log(`Set (created) resource: ${id}`);
-    //                         }
-    //                         break;
-
-    //                     case 'delete':
-    //                         if (existing.length === 0) {
-    //                             throw new Error(`Cannot delete: Resource with ID ${id} does not exist`);
-    //                         }
-    //                         await tx.delete(resource).where(eq(resource.id, id));
-    //                         console.log(`Deleted resource: ${id}`);
-    //                         break;
-
-    //                     default:
-    //                         throw new Error(`Unknown command: ${command} for resource ID ${id}`);
-    //                 }
-    //             }
-    //         });
-    //         console.log('All resource operations completed successfully');
-    //     } catch (error) {
-    //         return this.handleError(error)
-    //     }
-    // }
-
     async processResourceOperations(operations: any) {
         const results: any[] = [];
         try {
             const transactionResult = await db.transaction(async (tx) => {
                 for (const op of operations) {
-                    const { id, command, resourceType, parentId, userId, properties } = op;
-                    let result: any = { id, command, status: 'success' };
+                    let {
+                        id,
+                        command,
+                        resourceType,
+                        parentId,
+                        userId,
+                        properties,
+                        pointer,
+                        noteId,
+                        repetitions,
+                        interval,
+                        type,
+                        easiness,
+                        version,
+                        details
+                    } = op;
+                    let result: any = { id, command, status: "success", type: "resource" };
+                    // console.log(op);
+
+                    // console.log(command);
 
                     try {
-                        // Check if resource exists
+                        // Determine target table
+                        const tableName = pointer.table === "question" ? "questions" : pointer.table;
+                        const targetTable = tableName === "questions" ? questions : resource;
+
+                        // Check if resource/question exists
                         const existing = await tx
                             .select()
-                            .from(resource)
-                            .where(eq(resource.id, id));
+                            .from(targetTable)
+                            .where(eq(targetTable.id, id));
 
-                        // Validate parentId if provided
-                        if (parentId) {
+                        console.log(command);
+                        console.log(existing);
+                        if (existing.length > 0) {
+                            // if (command === "create" && version != 0) {
+                            //     throw new Error(`Version is invalid`);
+                            // }
+                            if (command !== "create" && (existing[0].version! + 1) != version) {
+                                throw new Error(`Version is invalid`);
+                            }
+                        }
+
+
+                        // Validate foreign keys
+                        if (tableName === "resource" && parentId) {
                             const parentExists = await tx
                                 .select()
                                 .from(resource)
@@ -164,63 +94,13 @@ export default class Resource extends Repo {
                                 throw new Error(`Parent resource with ID ${parentId} does not exist`);
                             }
                         }
-
                         switch (command.toLowerCase()) {
-                            case 'create':
+                            case "create":
                                 if (existing.length > 0) {
-                                    throw new Error(`Cannot create: Resource with ID ${id} already exists`);
+                                    throw new Error(`Cannot create: ${tableName} with ID ${id} already exists`);
                                 }
-                                const created = await tx
-                                    .insert(resource)
-                                    .values({
-                                        id,
-                                        resourceType,
-                                        parentId,
-                                        userId,
-                                        properties,
-                                        createdAt: new Date().toISOString(),
-                                        updatedAt: new Date().toISOString(),
-                                    })
-                                    .returning(); // Return inserted row
-                                result.data = created[0];
-                                break;
-
-                            case 'update':
-                                if (existing.length === 0) {
-                                    throw new Error(`Cannot update: Resource with ID ${id} does not exist`);
-                                }
-                                const updated = await tx
-                                    .update(resource)
-                                    .set({
-                                        resourceType,
-                                        parentId,
-                                        userId,
-                                        properties,
-                                        updatedAt: new Date().toISOString(),
-                                    })
-                                    .where(eq(resource.id, id))
-                                    .returning(); // Return updated row
-                                result.data = updated[0];
-                                break;
-
-                            case 'set':
-                                if (existing.length > 0) {
-                                    const updatedSet = await tx
-                                        .update(resource)
-                                        .set({
-                                            resourceType,
-                                            parentId,
-                                            userId,
-                                            properties,
-                                            updatedAt: new Date().toISOString(),
-                                        })
-                                        .where(eq(resource.id, id))
-                                        .returning();
-                                    result.data = updatedSet[0];
-                                    result.status = 'success';
-                                    console.log(`Set (updated) resource: ${id}`);
-                                } else {
-                                    const createdSet = await tx
+                                if (tableName === "resource") {
+                                    const created = await tx
                                         .insert(resource)
                                         .values({
                                             id,
@@ -230,41 +110,172 @@ export default class Resource extends Repo {
                                             properties,
                                             createdAt: new Date().toISOString(),
                                             updatedAt: new Date().toISOString(),
+                                            version: version
                                         })
                                         .returning();
-                                    result.data = createdSet[0];
-                                    result.status = 'success';
-                                    console.log(`Set (created) resource: ${id}`);
+                                    result.data = created[0];
+                                } else if (tableName === "questions") {
+
+                                    const noteExists = await tx
+                                        .select()
+                                        .from(resource)
+                                        .where(eq(resource.id, noteId));
+                                    if (noteExists.length === 0) {
+                                        const createdNote = await tx
+                                            .insert(resource)
+                                            .values({
+                                                id: noteId,
+                                                resourceType: "practice-note",
+                                                properties: details,
+                                                userId,
+                                                createdAt: new Date().toISOString(),
+                                                updatedAt: new Date().toISOString(),
+                                                version: version
+                                            })
+                                            .returning();
+                                        result.data = createdNote[0];
+                                        results.push(result);
+                                    }
+
+                                    const created = await tx
+                                        .insert(questions)
+                                        .values({
+                                            id,
+                                            noteId: noteId,
+                                            repetitions: repetitions,
+                                            interval: interval,
+                                            easiness: easiness,
+                                            type: type, // Default to valid enum
+                                            details: details,
+                                            version: version
+                                        })
+                                        .returning();
+                                    result.type = "question";
+                                    result.data = created[0];
                                 }
                                 break;
 
-                            case 'delete':
+                            case "update":
                                 if (existing.length === 0) {
-                                    throw new Error(`Cannot delete: Resource with ID ${id} does not exist`);
+                                    throw new Error(`Cannot update: ${tableName} with ID ${id} does not exist`);
                                 }
-                                await tx.delete(resource).where(eq(resource.id, id));
-                                result.data = null; // No data to return for delete
+                                if (tableName === "resource") {
+                                    const updated = await tx
+                                        .update(resource)
+                                        .set({
+                                            resourceType,
+                                            parentId,
+                                            userId,
+                                            properties,
+                                            updatedAt: new Date().toISOString(),
+                                            version: version,
+                                        })
+                                        .where(eq(resource.id, id))
+                                        .returning();
+                                    result.data = updated[0];
+                                } else if (tableName === "questions") {
+                                    const updated = await tx
+                                        .update(questions)
+                                        .set({
+                                            details: details,
+                                            version: version
+                                        })
+                                        .where(eq(questions.id, id))
+                                        .returning();
+                                    result.type = "question";
+                                    result.data = updated[0];
+                                }
+                                break;
+
+                            case "set":
+                                if (tableName === "resource") {
+                                    if (existing.length > 0) {
+                                        const updatedSet = await tx
+                                            .update(resource)
+                                            .set({
+                                                resourceType,
+                                                parentId,
+                                                userId,
+                                                properties,
+                                                updatedAt: new Date().toISOString(),
+                                                version: version
+                                            })
+                                            .where(eq(resource.id, id))
+                                            .returning();
+                                        result.data = updatedSet[0];
+                                        console.log(`Set (updated) resource: ${id}`);
+                                    } else {
+                                        const createdSet = await tx
+                                            .insert(resource)
+                                            .values({
+                                                id,
+                                                resourceType,
+                                                parentId,
+                                                userId,
+                                                properties,
+                                                createdAt: new Date().toISOString(),
+                                                updatedAt: new Date().toISOString(),
+                                                version: version
+                                            })
+                                            .returning();
+                                        result.data = createdSet[0];
+                                        console.log(`Set (created) resource: ${id}`);
+                                    }
+                                } else if (tableName === "questions") {
+                                    if (existing.length > 0) {
+                                        const updatedSet = await tx
+                                            .update(questions)
+                                            .set({
+                                                details: details,
+                                                version: version
+                                            })
+                                            .where(eq(questions.id, id))
+                                            .returning();
+                                        result.data = updatedSet[0];
+                                        console.log(`Set (updated) question: ${id}`);
+                                    } else {
+                                        const createdSet = await tx
+                                            .insert(questions)
+                                            .values({
+                                                id,
+                                                noteId: noteId,
+                                                repetitions: repetitions,
+                                                interval: interval,
+                                                easiness: easiness,
+                                                type: type,
+                                                details: details,
+                                                version: version
+                                            })
+                                            .returning();
+                                        result.data = createdSet[0];
+                                        console.log(`Set (created) question: ${id}`);
+                                    }
+                                }
+                                break;
+
+                            case "delete":
+                                if (existing.length === 0) {
+                                    throw new Error(`Cannot delete: ${tableName} with ID ${id} does not exist`);
+                                }
+                                await tx.delete(targetTable).where(eq(targetTable.id, id));
+                                result.data = null;
                                 break;
 
                             default:
-                                throw new Error(`Unknown command: ${command} for resource ID ${id}`);
+                                throw new Error(`Unknown command: ${command} for ${tableName} ID ${id}`);
                         }
                     } catch (error) {
-                        // tx.rollback();
-                        // return this.handleError(error);
-                        // console.error(`Operation failed for ${id}:`, error);
-                        throw error; // Replace tx.rollback() and return
+                        throw error; // Let transaction handle rollback
                     }
 
                     results.push(result);
                 }
 
-                return results; // Return the array of results from the transaction
+                return results;
             });
 
-            return { type: 200, error: false, message: "Transactions were successful", data: transactionResult }; // Return the results to the caller
+            return { type: 200, error: false, message: "Transactions were successful", data: transactionResult };
         } catch (error) {
-            // tx.rollback();
             return this.handleError(error);
         }
     }

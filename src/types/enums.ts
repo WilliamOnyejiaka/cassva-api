@@ -4,9 +4,9 @@ export enum Namespace {
 }
 
 export enum Events {
-    APPERROR = "appError",
+    APP_ERROR = "appError",
     ONLINE = "online",
-    CREATEDRESOURCE = "createdResource",
-    FAILEDTRANSACTION = "failedTransaction",
-    SUCCESSFULTRANSACTION = "successfulTransaction"
+    CREATED_RESOURCE = "createdResource",
+    FAILED_TRANSACTION = "failedTransaction",
+    SUCCESSFUL_TRANSACTION = "successfulTransaction"
 }

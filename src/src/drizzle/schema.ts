@@ -1,4 +1,4 @@
-import { pgTable, foreignKey, text, uuid, jsonb, timestamp, integer, real, uniqueIndex, unique, varchar, index, serial, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, foreignKey, text, uuid, jsonb, timestamp, integer, uniqueIndex, unique, varchar, index, serial, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const questionType = pgEnum("question_type", ['free-form', 'multiple-select', 'single-select'])
@@ -13,7 +13,7 @@ export const resource = pgTable("resource", {
 	properties: jsonb().notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
-	version: integer(),
+	versionNumber: integer("version_number"),
 }, (table) => [
 	foreignKey({
 			columns: [table.parentId],
@@ -24,23 +24,6 @@ export const resource = pgTable("resource", {
 			columns: [table.userId],
 			foreignColumns: [users.id],
 			name: "resource_user_id_users_id_fk"
-		}).onDelete("cascade"),
-]);
-
-export const questions = pgTable("questions", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	noteId: text("note_id").notNull(),
-	repetitions: integer().default(0),
-	interval: integer().default(1),
-	easiness: real().default(2.5),
-	type: questionType().notNull(),
-	details: jsonb().notNull(),
-	version: integer(),
-}, (table) => [
-	foreignKey({
-			columns: [table.noteId],
-			foreignColumns: [resource.id],
-			name: "questions_note_id_resource_id_fk"
 		}).onDelete("cascade"),
 ]);
 
@@ -72,6 +55,22 @@ export const otpVerification = pgTable("otp-verification", {
 			name: "otp-verification_userId_users_id_fk"
 		}).onDelete("cascade"),
 	unique("otp-verification_userId_unique").on(table.userId),
+]);
+
+export const questions = pgTable("questions", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	noteId: text("note_id").notNull(),
+	repetitions: integer().default(0),
+	interval: integer().default(1),
+	easiness: integer().default(2.5),
+	type: questionType().notNull(),
+	details: jsonb().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.noteId],
+			foreignColumns: [resource.id],
+			name: "questions_note_id_resource_id_fk"
+		}).onDelete("cascade"),
 ]);
 
 export const resetTokens = pgTable("reset-tokens", {

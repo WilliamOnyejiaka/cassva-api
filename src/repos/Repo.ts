@@ -3,11 +3,11 @@ export default class Repo {
 
     // protected tbl = 
 
-    public constructor(tblName: string){
-        
+    public constructor(tblName: string) {
+
     }
 
-    protected responseData(type: number,error: boolean,message: string | null = null,data: Object = {}){
+    protected responseData(type: number, error: boolean, message: string | null = null, data: Object = {}) {
         return {
             type,
             error,

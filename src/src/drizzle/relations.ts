@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { resource, users, questions, otpVerification, resetTokens, session } from "./schema";
+import { resource, users, otpVerification, questions, resetTokens, session } from "./schema";
 
 export const resourceRelations = relations(resource, ({one, many}) => ({
 	resource: one(resource, {
@@ -24,17 +24,17 @@ export const usersRelations = relations(users, ({many}) => ({
 	sessions: many(session),
 }));
 
-export const questionsRelations = relations(questions, ({one}) => ({
-	resource: one(resource, {
-		fields: [questions.noteId],
-		references: [resource.id]
-	}),
-}));
-
 export const otpVerificationRelations = relations(otpVerification, ({one}) => ({
 	user: one(users, {
 		fields: [otpVerification.userId],
 		references: [users.id]
+	}),
+}));
+
+export const questionsRelations = relations(questions, ({one}) => ({
+	resource: one(resource, {
+		fields: [questions.noteId],
+		references: [resource.id]
 	}),
 }));
 
