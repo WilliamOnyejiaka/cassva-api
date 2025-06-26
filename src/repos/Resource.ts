@@ -144,7 +144,8 @@ export default class Resource extends Repo {
                                             repetitions: repetitions,
                                             interval: interval,
                                             easiness: easiness,
-                                            type: type, // Default to valid enum
+                                            type: type,
+                                            correctAnswer: "Hello", // ! update this
                                             details: details,
                                             version: version
                                         })
@@ -243,7 +244,8 @@ export default class Resource extends Repo {
                                                 easiness: easiness,
                                                 type: type,
                                                 details: details,
-                                                version: version
+                                                version: version,
+                                                correctAnswer: "Hello" // ! Update
                                             })
                                             .returning();
                                         result.data = createdSet[0];

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
-    "pull": "npx drizzle-kit pull",
+    "pull": "npx drizzle-kit pull --config=src/drizzle.config.ts",
     "build": "tsc -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

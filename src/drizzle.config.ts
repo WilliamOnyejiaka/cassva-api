@@ -1,13 +1,12 @@
 import { defineConfig } from "drizzle-kit";
-import { config } from "dotenv";
-config();
+import { env } from "./config";
 
 export default defineConfig({
     schema: "./src/drizzle/schema.ts", // Where the generated schema will be saved
     out: "./src/drizzle",            // Folder for migration files (optional)
     dialect: "postgresql",       // Specify PostgreSQL as the dialect
     dbCredentials: {
-        url: process.env.DATABASE_URL!, // Use the Supabase connection string
+        url: env("databaseURL")!, // Use the Supabase connection string
     },
     schemaFilter: ["public"], // Explicitly limit to 'public' schema
     strict: true,
