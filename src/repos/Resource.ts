@@ -54,7 +54,8 @@ export default class Resource extends Repo {
                         type,
                         easiness,
                         version,
-                        details
+                        details,
+                        correct_answer
                     } = op;
                     let result: any = { id, command, status: "success", type: "resource" };
                     // console.log(op);
@@ -145,7 +146,7 @@ export default class Resource extends Repo {
                                             interval: interval,
                                             easiness: easiness,
                                             type: type,
-                                            correctAnswer: "Hello", // ! update this
+                                            correctAnswer: correct_answer, // ! update this
                                             details: details,
                                             version: version
                                         })
@@ -245,7 +246,7 @@ export default class Resource extends Repo {
                                                 type: type,
                                                 details: details,
                                                 version: version,
-                                                correctAnswer: "Hello" // ! Update
+                                                correctAnswer: correct_answer
                                             })
                                             .returning();
                                         result.data = createdSet[0];

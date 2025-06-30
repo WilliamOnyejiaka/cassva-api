@@ -97,11 +97,9 @@ export default class Transaction {
                     return;
                 }
 
-                // console.log(table);
-                // console.log(operation);
 
                 if (table == allowedTables[0] || table == allowedTables[2]) {
-                    let { noteId, repetitions, interval, type, easiness, details } = data;
+                    let { noteId, repetitions, interval, type, easiness, details, correct_answer } = data;
 
                     if (command === "create") {
                         if (!noteId || typeof repetitions === "undefined" || typeof interval === "undefined" || typeof easiness === "undefined" || !details) {
@@ -121,7 +119,20 @@ export default class Transaction {
                             return;
                         }
                     }
-                    transactions.push({ id, noteId, repetitions, interval, type, easiness, details: details, pointer, command, version, userId });
+                    transactions.push({
+                        id,
+                        noteId,
+                        repetitions,
+                        interval,
+                        type,
+                        easiness,
+                        details: details,
+                        pointer,
+                        command,
+                        version,
+                        userId,
+                        correct_answer
+                    });
                 } else {
                     const { createdAt, updatedAt, properties, type } = data;
                     if (!createdAt || !updatedAt || !properties || !type) {
@@ -159,7 +170,7 @@ export default class Transaction {
             return;
         }
 
-        const transactionResult = (result.data as any).map((item: any) =>{
+        const transactionResult = (result.data as any).map((item: any) => {
             return { table: item.type, transactionId: item.data.id }
         });
 
